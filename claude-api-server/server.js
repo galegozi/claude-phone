@@ -96,7 +96,7 @@ function buildClaudeEnvironment() {
 const { env: claudeEnv, authMode: claudeAuthMode } = buildClaudeEnvironment();
 const CLAUDE_MODEL = resolveClaudeModel(claudeEnv);
 console.log('[STARTUP] Loaded environment with', Object.keys(claudeEnv).length, 'variables');
-console.log('[STARTUP] PATH includes:', claudeEnv.PATH.split(':').slice(0, 5).join(', '), '...');
+console.log('[STARTUP] PATH configured:', Boolean(claudeEnv.PATH));
 console.log('[STARTUP] Auth mode:', claudeAuthMode);
 console.log('[STARTUP] Model:', CLAUDE_MODEL);
 if (claudeEnv.ANTHROPIC_BASE_URL) {
@@ -104,7 +104,7 @@ if (claudeEnv.ANTHROPIC_BASE_URL) {
 }
 
 const secretEnvCount = Object.keys(claudeEnv).filter(k =>
-  k.includes('API_KEY') || k.includes('TOKEN') || k.includes('SECRET') || k === 'PAI_DIR'
+  k.includes('API_KEY') || k.includes('TOKEN') || k.includes('SECRET')
 ).length;
 console.log('[STARTUP] Loaded', secretEnvCount, 'secret-related environment entries');
 
