@@ -20,7 +20,7 @@ Claude Phone gives your Claude Code installation a phone number. You can:
 | **3CX Cloud Account** | [3cx.com](https://www.3cx.com/) | Free tier works |
 | **ElevenLabs API Key** | [elevenlabs.io](https://elevenlabs.io/) | For text-to-speech |
 | **OpenAI API Key** | [platform.openai.com](https://platform.openai.com/) | For Whisper speech-to-text |
-| **Claude Code CLI** | [claude.ai/code](https://claude.ai/code) | Requires Claude Max subscription |
+| **Claude Code CLI** | [claude.ai/code](https://claude.ai/code) | Works with Claude subscription auth or API/router-backed open models |
 
 ## Platform Support
 
@@ -63,6 +63,16 @@ The setup wizard asks what you're installing:
 ```bash
 claude-phone start
 ```
+
+## Open Model Support
+
+Claude Phone still runs through Claude Code CLI, but the API server now preserves open-model and router settings too.
+
+- **Claude subscription / Max:** no extra config needed
+- **OpenRouter or other compatible gateways:** set `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY`, and `CLAUDE_MODEL` (or `ANTHROPIC_MODEL`) on the API server machine
+- **Local Ollama / LM Studio style setups:** point `ANTHROPIC_BASE_URL` at the local endpoint and choose an open model with `CLAUDE_MODEL`
+
+If you want to force the old subscription-only behavior, set `CLAUDE_AUTH_MODE=subscription` before starting `claude-phone api-server`.
 
 ## Deployment Modes
 

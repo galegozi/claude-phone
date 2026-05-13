@@ -24,6 +24,11 @@ const {
   validateRequiredFields,
   buildRepairPrompt,
 } = require('./structured');
+const {
+  parseDotEnv,
+  resolveClaudeModel,
+  applyAuthMode,
+} = require('./runtime-config');
 
 const app = express();
 const PORT = process.env.PORT || 3333;
@@ -41,16 +46,7 @@ function buildClaudeEnvironment() {
   const envPath = path.join(PAI_DIR, '.env');
   const paiEnv = {};
   if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    for (const line of envContent.split('\n')) {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#')) {
-        const [key, ...valueParts] = trimmed.split('=');
-        if (key && valueParts.length > 0) {
-          paiEnv[key] = valueParts.join('=');
-        }
-      }
-    }
+    Object.assign(paiEnv, parseDotEnv(fs.readFileSync(envPath, 'utf8')));
   }
 
   // Build PATH like zsh profile does
@@ -74,7 +70,7 @@ function buildClaudeEnvironment() {
     '/sbin'
   ].join(':');
 
-  const env = {
+  const mergedEnv = {
     ...process.env,
     ...paiEnv,
     PATH: fullPath,
@@ -92,17 +88,20 @@ function buildClaudeEnvironment() {
     CLAUDE_CODE_ENTRYPOINT: 'cli',
   };
 
-  // CRITICAL: Remove ANTHROPIC_API_KEY so Claude CLI uses subscription auth
-  // If ANTHROPIC_API_KEY is set (even to placeholder), CLI tries API auth instead
-  delete env.ANTHROPIC_API_KEY;
-
-  return env;
+  const { env, authMode } = applyAuthMode(mergedEnv);
+  return { env, authMode };
 }
 
 // Pre-build the environment once at startup
-const claudeEnv = buildClaudeEnvironment();
+const { env: claudeEnv, authMode: claudeAuthMode } = buildClaudeEnvironment();
+const CLAUDE_MODEL = resolveClaudeModel(claudeEnv);
 console.log('[STARTUP] Loaded environment with', Object.keys(claudeEnv).length, 'variables');
 console.log('[STARTUP] PATH includes:', claudeEnv.PATH.split(':').slice(0, 5).join(', '), '...');
+console.log('[STARTUP] Auth mode:', claudeAuthMode);
+console.log('[STARTUP] Model:', CLAUDE_MODEL);
+if (claudeEnv.ANTHROPIC_BASE_URL) {
+  console.log('[STARTUP] ANTHROPIC_BASE_URL detected for API/router-backed models');
+}
 
 // Log which API keys are available (without showing values)
 const apiKeys = Object.keys(claudeEnv).filter(k =>
@@ -112,9 +111,6 @@ console.log('[STARTUP] API keys loaded:', apiKeys.join(', '));
 
 // Session storage: callId -> claudeSessionId
 const sessions = new Map();
-
-// Model selection - Sonnet for balanced speed/quality
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514';
 
 function parseClaudeStdout(stdout) {
   // Claude Code CLI may output JSONL; when it does, extract the `result` message.
@@ -488,6 +484,9 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'claude-api-server',
+    auth_mode: claudeAuthMode,
+    model: CLAUDE_MODEL,
+    api_base_url_configured: Boolean(claudeEnv.ANTHROPIC_BASE_URL),
     timestamp: new Date().toISOString()
   });
 });
@@ -500,6 +499,8 @@ app.get('/', (req, res) => {
   res.json({
     service: 'Claude HTTP API Server',
     version: '1.0.0',
+    auth_mode: claudeAuthMode,
+    model: CLAUDE_MODEL,
     endpoints: {
       'POST /ask': 'Send a prompt to Claude',
       'POST /ask-structured': 'Send a prompt and return validated JSON (n8n)',
