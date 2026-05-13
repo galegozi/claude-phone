@@ -44,6 +44,7 @@ test('resolveAuthMode switches to api for open-model configurations automaticall
 
 test('applyAuthMode strips Anthropic API settings only in subscription mode', () => {
   const subscription = applyAuthMode({
+    CLAUDE_AUTH_MODE: 'subscription',
     CLAUDE_MODEL: 'claude-sonnet-4-20250514',
     ANTHROPIC_API_KEY: 'test-key',
     ANTHROPIC_AUTH_TOKEN: 'token',
