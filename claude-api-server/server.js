@@ -28,6 +28,7 @@ const {
   parseDotEnv,
   resolveClaudeModel,
   applyAuthMode,
+  countSecretEnvEntries,
 } = require('./runtime-config');
 
 const app = express();
@@ -103,9 +104,7 @@ if (claudeEnv.ANTHROPIC_BASE_URL) {
   console.log('[STARTUP] ANTHROPIC_BASE_URL detected for API/router-backed models');
 }
 
-const secretEnvCount = Object.keys(claudeEnv).filter(k =>
-  k.includes('API_KEY') || k.includes('TOKEN') || k.includes('SECRET')
-).length;
+const secretEnvCount = countSecretEnvEntries(claudeEnv);
 console.log('[STARTUP] Loaded', secretEnvCount, 'secret-related environment entries');
 
 // Session storage: callId -> claudeSessionId

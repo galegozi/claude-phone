@@ -3,8 +3,10 @@ const assert = require('node:assert/strict');
 const {
   parseDotEnv,
   resolveClaudeModel,
+  isClaudeModel,
   resolveAuthMode,
   applyAuthMode,
+  countSecretEnvEntries,
 } = require('../runtime-config');
 
 test('parseDotEnv reads key value pairs and ignores comments', () => {
@@ -31,6 +33,13 @@ test('resolveClaudeModel prefers explicit CLAUDE_MODEL', () => {
 
 test('resolveClaudeModel falls back to ANTHROPIC_MODEL', () => {
   assert.equal(resolveClaudeModel({ ANTHROPIC_MODEL: 'qwen/qwen3-32b' }), 'qwen/qwen3-32b');
+});
+
+test('isClaudeModel distinguishes Claude models from open models', () => {
+  assert.equal(isClaudeModel('claude-sonnet-4-20250514'), true);
+  assert.equal(isClaudeModel('Claude-Opus-4'), true);
+  assert.equal(isClaudeModel('qwen/qwen3-32b'), false);
+  assert.equal(isClaudeModel('openai/gpt-4.1'), false);
 });
 
 test('resolveAuthMode defaults to subscription for standard Claude setups', () => {
@@ -76,4 +85,13 @@ test('explicit CLAUDE_AUTH_MODE overrides auto-detection', () => {
     CLAUDE_AUTH_MODE: 'api',
     CLAUDE_MODEL: 'claude-sonnet-4-20250514',
   }), 'api');
+});
+
+test('countSecretEnvEntries counts secret-like environment variables only', () => {
+  assert.equal(countSecretEnvEntries({
+    ANTHROPIC_API_KEY: 'key',
+    ANTHROPIC_AUTH_TOKEN: 'token',
+    APP_SECRET: 'secret',
+    PAI_DIR: '/tmp/.claude',
+  }), 3);
 });

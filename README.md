@@ -69,8 +69,8 @@ claude-phone start
 Claude Phone still runs through Claude Code CLI, but the API server now preserves open-model and router settings too.
 
 - **Claude subscription / Max:** no extra config needed
-- **OpenRouter or other compatible gateways:** set `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY`, and `CLAUDE_MODEL` (or `ANTHROPIC_MODEL`) on the API server machine
-- **Local Ollama / LM Studio style setups:** point `ANTHROPIC_BASE_URL` at the local endpoint and choose an open model with `CLAUDE_MODEL`
+- **OpenRouter or other compatible gateways:** set `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY`, and `CLAUDE_MODEL` (or `ANTHROPIC_MODEL`) in `~/.claude/.env` on the API server machine, or export them before starting `claude-phone api-server`
+- **Local Ollama / LM Studio style setups:** point `ANTHROPIC_BASE_URL` at the local endpoint and choose an open model with `CLAUDE_MODEL` in the same `~/.claude/.env` file or exported shell environment
 
 If you want to force the old subscription-only behavior, set `CLAUDE_AUTH_MODE=subscription` before starting `claude-phone api-server`.
 

@@ -25,6 +25,12 @@ function isClaudeModel(model) {
   return String(model || '').toLowerCase().startsWith('claude');
 }
 
+function countSecretEnvEntries(env = process.env) {
+  return Object.keys(env).filter(key =>
+    key.includes('API_KEY') || key.includes('TOKEN') || key.includes('SECRET')
+  ).length;
+}
+
 function resolveAuthMode(env = process.env) {
   const explicitMode = String(env.CLAUDE_AUTH_MODE || '').trim().toLowerCase();
   if (VALID_AUTH_MODES.has(explicitMode)) {
@@ -56,6 +62,8 @@ module.exports = {
   DEFAULT_MODEL,
   parseDotEnv,
   resolveClaudeModel,
+  isClaudeModel,
   resolveAuthMode,
   applyAuthMode,
+  countSecretEnvEntries,
 };
