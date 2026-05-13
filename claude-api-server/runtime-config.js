@@ -9,7 +9,7 @@ function parseDotEnv(envContent) {
     if (!trimmed || trimmed.startsWith('#')) continue;
 
     const [key, ...valueParts] = trimmed.split('=');
-    if (key && valueParts.length > 0) {
+    if (key) {
       parsed[key] = valueParts.join('=');
     }
   }

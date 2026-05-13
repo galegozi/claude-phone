@@ -103,11 +103,10 @@ if (claudeEnv.ANTHROPIC_BASE_URL) {
   console.log('[STARTUP] ANTHROPIC_BASE_URL detected for API/router-backed models');
 }
 
-// Log which API keys are available (without showing values)
-const apiKeys = Object.keys(claudeEnv).filter(k =>
+const secretEnvCount = Object.keys(claudeEnv).filter(k =>
   k.includes('API_KEY') || k.includes('TOKEN') || k.includes('SECRET') || k === 'PAI_DIR'
-);
-console.log('[STARTUP] API keys loaded:', apiKeys.join(', '));
+).length;
+console.log('[STARTUP] Loaded', secretEnvCount, 'secret-related environment entries');
 
 // Session storage: callId -> claudeSessionId
 const sessions = new Map();
